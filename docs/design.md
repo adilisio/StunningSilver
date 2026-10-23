@@ -90,12 +90,13 @@ machine in Elm's lab, Elm asks which Pokémon you'd like to choose from:
 | **Johto** | Chikorita, Cyndaquil, Totodile |
 | **Other regions** → Kanto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea | That generation's grass/fire/water trio |
 | **Random starters** | Each slot is the grass, fire or water starter of a random generation, e.g. Rowlet / Charmander / Piplup |
-| **Truly random** | Any three different Pokémon out of all 1,025 |
+| **Truly random** | Any three different Pokémon out of all 1,025, legendaries included |
+| **Random base stage** | Three different unevolved Pokémon that can evolve, excluding legendaries and mythicals (331 species, from Pichu and Eevee to Sprigatito) |
 
 The rival (Silver) takes the starter in the slot that counters yours, as in vanilla, at the same
 evolution stage. For example, with the Sinnoh set, choosing Turtwig means the rival takes
-Chimchar, which becomes Monferno and then Infernape over the game. With truly random, he takes whichever
-Pokémon sits in that slot. His trainer-data moves and ability are dropped for a swapped
+Chimchar, which becomes Monferno and then Infernape over the game. With either random option, he takes
+whichever Pokémon sits in that slot. His trainer-data moves and ability are dropped for a swapped
 starter, so it uses its own level-up moves.
 
 How it works:
@@ -165,7 +166,7 @@ needs a hook in the starter app's text printing, which requires a ROM to disasse
 | Milestone | Scope |
 |---|---|
 | **M0 — Foundation** ✅ | Import hg-engine, branding/docs, badge-based level caps, starter selection |
-| **M1 — Playable build in CI** | Enable the upstream GitHub Actions build for this repo (it builds a HeartGold ROM from the pokeheartgold decomp and patches it). Produce a `.xdelta` patch artifact. |
+| **M1 — Playable build in CI** 🔄 | `.github/workflows/build.yml` runs on every push: it builds HeartGold from the pokeheartgold decomp, runs hg-engine's battle tests, builds the playable ROM, and uploads only a `StunningSilver.xdelta` patch. Done once the first run is green. |
 | **M2 — Script source** | Dump scripts/event data into the repo (`BUILD_DUMPED_SCR_SEQ`, `BUILD_DUMPED_EVENTDATA`) so story edits are reviewable text. Individual scripts can already be taken over without a ROM. See "Editing a vanilla script" below. |
 | **M3 — Johto encounters** | New wild encounter tables (`data/Encounters.c`, headbutt, surf, Safari/Bug Contest) with the expanded roster. |
 | **M4 — Gyms 1–4 + early rivals/Rocket** | Boss teams, level-cap script bumps, Hardcore variants. |
@@ -195,10 +196,10 @@ and each one replaces that one script in the ROM. Elm's lab (script 843) was tak
 
 Resolved:
 - **Silver identity:** Lugia is the cover legendary (title screen and box art) and the story legendary.
-- **Starters:** Radical Red-style choice of any generation, random starters, or truly random (§5).
+- **Starters:** Radical Red-style choice of any generation, random starters, truly random, or random base stage (§5).
 - **Mechanics scope:** the same as Radical Red. Megas, Z-Moves and Dynamax are in; Terastallization is out.
 
 Open:
 1. The exact level-cap numbers: tune them after the M4 playtest.
-2. Truly random can roll legendaries and Pokémon that don't evolve. Keep it truly random, or
-   add a "random base-stage only" option?
+2. Should sub-legendaries that evolve (Type: Null, Kubfu, Poipole) be allowed in "random base
+   stage"? They currently are, if hg-engine's baby table lists them as their own base.

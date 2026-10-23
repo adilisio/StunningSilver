@@ -8,7 +8,7 @@ the concept of Radical Red, which modernized FireRed's Kanto, and applies it to
 - an expanded and rebalanced roster
 - hard level caps and competitive-style boss fights
 - quality-of-life features that cut out grinding
-- a Radical Red-style starter choice: any generation's trio, random starters, or truly random
+- a Radical Red-style starter choice: any generation's trio, random starters, truly random, or random base stage
 
 **Lugia** is the cover legendary.
 
@@ -33,8 +33,15 @@ Follow the platform setup in [`docs/hg-engine-README.md`](docs/hg-engine-README.
 |---|---|
 | Hard level cap that follows badge progress. Scripts can raise it further with var `0x416F`. | `LEVEL_CAP_FROM_BADGES` in `include/config.h`, table `sBadgeLevelCaps` in `src/pokemon.c` |
 | Rare Candies can trigger an evolution at the level cap | `ALLOW_LEVEL_CAP_EVOLVE` in `include/config.h` |
-| Elm asks which starters to offer: Johto, another region, random starters, or truly random. The rival's starter follows suit. | `STARTER_SELECTION` in `include/config.h`, `src/starters.c`, `src/field/enemy_party.c`, `data/scr_seq/scr_seq_00843_T20R0101.s`, `data/text/543.txt` |
+| Elm asks which starters to offer: Johto, another region, random starters, truly random, or random base stage. The rival's starter follows suit. | `STARTER_SELECTION` in `include/config.h`, `src/starters.c`, `src/field/enemy_party.c`, `data/scr_seq/scr_seq_00843_T20R0101.s`, `data/text/543.txt` |
 | Starter screen text no longer names the Johto starters | `data/text/190.txt` |
+
+## CI
+
+Every push runs `.github/workflows/build.yml`. It builds US HeartGold from the
+[pokeheartgold](https://github.com/pret/pokeheartgold) decompilation, runs hg-engine's battle
+tests, then builds StunningSilver. The run's artifact is `StunningSilver.xdelta`. Apply it to your
+own US HeartGold dump with xdelta3 or an online xdelta patcher. Built ROMs are never uploaded.
 
 ## Updating the engine
 

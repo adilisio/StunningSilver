@@ -14,6 +14,7 @@
 #define STARTER_SET_PALDEA           9
 #define STARTER_SET_RANDOM_STARTERS 10 // each slot is the matching starter of a random generation
 #define STARTER_SET_TRULY_RANDOM    11 // any three different species
+#define STARTER_SET_RANDOM_BASE_STAGE 12 // three different unevolved species that can evolve, excluding legendaries and mythicals
 
 #define NUM_STARTER_GENERATIONS (STARTER_SET_PALDEA)
 

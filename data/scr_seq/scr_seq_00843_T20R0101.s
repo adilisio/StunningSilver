@@ -265,6 +265,7 @@ _StarterSetMenu:
 	menu_item_add 108, 255, STARTER_MENU_OTHER_REGIONS
 	menu_item_add 109, 255, STARTER_SET_RANDOM_STARTERS
 	menu_item_add 110, 255, STARTER_SET_TRULY_RANDOM
+	menu_item_add 120, 255, STARTER_SET_RANDOM_BASE_STAGE
 	menu_exec
 	compare VAR_SPECIAL_RESULT, STARTER_MENU_OTHER_REGIONS
 	goto_if_eq _StarterRegionMenu

@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
     paths-ignore:
       - '**.md'
   pull_request:
@@ -19,7 +19,7 @@ env:
 
 jobs:
   build:
-    if: ${{ github.repository == 'BluRosie/hg-engine' }}
+    if: ${{ github.repository == 'BluRosie/hg-engine' || github.repository == 'adilisio/StunningSilver' }}
     runs-on: ubuntu-22.04
 
     steps:
@@ -148,3 +148,28 @@ jobs:
       - name: Run tests
         run: |
           scripts/run_tests.sh -c -j $(nproc)
+
+      # StunningSilver: the steps above build the battle test rom, so build the playable rom from scratch and publish it as a patch.
+      # only the patch is uploaded, never a rom: artifacts on a public repository can be downloaded by anyone
+      - name: Build playable ROM
+        if: ${{ github.repository == 'adilisio/StunningSilver' }}
+        run: |
+          unset CC
+          unset CXX
+          make clean
+          make -j$(nproc)
+
+      - name: Create patch
+        if: ${{ github.repository == 'adilisio/StunningSilver' }}
+        run: |
+          sudo apt -y install xdelta3
+          xdelta3 -e -9 -s rom.nds test.nds StunningSilver.xdelta
+          ls -l StunningSilver.xdelta
+
+      - name: Upload patch
+        if: ${{ github.repository == 'adilisio/StunningSilver' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: StunningSilver-${{ github.sha }}
+          path: StunningSilver.xdelta
+          if-no-files-found: error

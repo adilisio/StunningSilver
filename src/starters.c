@@ -41,6 +41,9 @@ static const u16 sStarterSets[NUM_STARTER_GENERATIONS + 1][NUM_STARTER_SLOTS] = 
     [STARTER_SET_PALDEA] = { SPECIES_SPRIGATITO, SPECIES_FUECOCO,    SPECIES_QUAXLY },
 };
 
+// the earliest evolution stage of every species, the same table the daycare uses from pms.narc
+#include "../data/BabyMons.c"
+
 // species 494-543 are the eggs and unused slots between arceus and victini
 #define NUM_TRULY_RANDOM_SPECIES (SPECIES_ARCEUS + (MAX_CANONICAL_MON_NUM - SPECIES_VICTINI + 1))
 
@@ -60,6 +63,43 @@ static u16 GetTrulyRandomSpecies(void)
 }
 
 /**
+ *  @brief check if a species is the first stage of an evolution line that evolves, excluding legendaries and mythicals
+ *
+ *  @param species species id
+ *  @return TRUE if the species can be offered by STARTER_SET_RANDOM_BASE_STAGE; FALSE otherwise
+ */
+static BOOL IsBaseStageThatEvolves(u16 species)
+{
+    // the narc member also holds a terminator after the entries
+    struct Evolution evoTable[MAX_EVOS_PER_POKE + 1];
+
+    if (species >= NELEMS(sBabyMons) || sBabyMons[species] != species || IS_SPECIES_LEGENDARY(species) || IS_SPECIES_MYTHICAL(species)) {
+        return FALSE;
+    }
+
+    ReadWholeNarcMemberByIdPair(evoTable, ARC_EVOLUTIONS, species);
+    return evoTable[0].method != EVO_NONE;
+}
+
+/**
+ *  @brief check if a species is among the first entries of an array
+ *
+ *  @param array species array
+ *  @param count number of entries to check
+ *  @param species species id to look for
+ *  @return TRUE if the species is in the first count entries; FALSE otherwise
+ */
+static BOOL IsSpeciesInArray(const u16 *array, int count, u16 species)
+{
+    for (int i = 0; i < count; i++) {
+        if (array[i] == species) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/**
  *  @brief fill the starter offer vars from the set in STARTER_SET_VARIABLE if they are not filled yet
  *
  *  the elm's lab script clears the offer vars before the starter selection screen, so random sets are rolled exactly once
@@ -68,7 +108,7 @@ static void FillStarterOffers(void)
 {
     u32 set = GetScriptVar(STARTER_SET_VARIABLE);
     u16 offers[NUM_STARTER_SLOTS];
-    int i, j;
+    int i;
 
     if (GetScriptVar(STARTER_OFFER_VARIABLE_START) != SPECIES_NONE) {
         return;
@@ -83,8 +123,11 @@ static void FillStarterOffers(void)
             // reroll until the species differs from the ones already offered
             do {
                 offers[i] = GetTrulyRandomSpecies();
-                for (j = 0; j < i && offers[j] != offers[i]; j++);
-            } while (j < i);
+            } while (IsSpeciesInArray(offers, i, offers[i]));
+        } else if (set == STARTER_SET_RANDOM_BASE_STAGE) {
+            do {
+                offers[i] = GetTrulyRandomSpecies();
+            } while (!IsBaseStageThatEvolves(offers[i]) || IsSpeciesInArray(offers, i, offers[i]));
         } else {
             offers[i] = sStarterChoices[i];
         }
@@ -105,7 +148,8 @@ static void FillStarterOffers(void)
  */
 static u16 EvolveSpeciesByStages(u16 species, u32 stages, int heapID)
 {
-    struct Evolution *evoTable = sys_AllocMemory(heapID, MAX_EVOS_PER_POKE * sizeof(struct Evolution));
+    // the narc member also holds a terminator after the entries
+    struct Evolution *evoTable = sys_AllocMemory(heapID, (MAX_EVOS_PER_POKE + 1) * sizeof(struct Evolution));
 
     for (; stages > 0; stages--) {
         ReadWholeNarcMemberByIdPair(evoTable, ARC_EVOLUTIONS, PokeOtherFormMonsNoGet(species & 0x7FF, species >> 11));
