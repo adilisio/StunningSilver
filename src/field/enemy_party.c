@@ -102,6 +102,7 @@ void MakeTrainerPokemonParty(struct BATTLE_PARAM *bp, int num, int heapID)
     u16 *nickname = sys_AllocMemory(heapID, 11 * sizeof(u16));
     u8 form_no = 0, abilityslot = 0, nature = 0, ballseal = 0, shinylock = 0, status = 0;
     u32 additionalflags = 0;
+    BOOL replacedStarter = FALSE;
 
     int partyOrder[pokecount];
     if (randomorder_flag) {
@@ -149,6 +150,11 @@ void MakeTrainerPokemonParty(struct BATTLE_PARAM *bp, int num, int heapID)
         offset += 2;
         form_no = (species & 0xF800) >> 11;
         species &= 0x07FF;
+
+#ifdef STARTER_SELECTION
+        // the rival's starter follows the player's starter selection, so its moves and ability from the trainer data belong to another species
+        replacedStarter = bp->trainer_data[num].tr_type == TRAINERCLASS_RIVAL && SwapRivalStarterSpecies(&species, &form_no, heapID);
+#endif // STARTER_SELECTION
 
         // item field - conditional
         if (bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_ITEMS) {
@@ -308,7 +314,7 @@ void MakeTrainerPokemonParty(struct BATTLE_PARAM *bp, int num, int heapID)
         if (bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_ITEMS) {
             SetMonData(mons[i], MON_DATA_HELD_ITEM, &item);
         }
-        if (bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_MOVES) {
+        if ((bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_MOVES) && !replacedStarter) {
             for (j = 0; j < 4; j++) {
 #ifdef BLOCK_LEARNING_UNIMPLEMENTED_MOVES
                 if (IsMoveUnimplemented(moves[j])) {
@@ -319,7 +325,7 @@ void MakeTrainerPokemonParty(struct BATTLE_PARAM *bp, int num, int heapID)
             }
         }
         TrainerCBSet(ballseal, mons[i], heapID);
-        if (bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_ABILITY) {
+        if ((bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_ABILITY) && !replacedStarter) {
             SetMonData(mons[i], MON_DATA_ABILITY, &ability);
         }
         if (bp->trainer_data[num].data_type & TRAINER_DATA_TYPE_BALL) {

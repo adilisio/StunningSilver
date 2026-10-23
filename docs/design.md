@@ -17,8 +17,11 @@ HeartGold/SoulSilver base.
    competitive sets (EVs, natures, items, Megas) and smart AI. Losing should teach you something.
 3. **Respect the player's time.** Hard level caps replace grinding. IVs/EVs, natures and moves
    are cheap to adjust. Healing, repels and running are always available.
-4. **Silver identity.** **Lugia** is the story legendary, as in Silver/SoulSilver, with silver
-   and ocean themes throughout the presentation. Ho-Oh moves to the post-game.
+4. **Silver identity.** **Lugia is the cover legendary**: it's on the title screen and box art,
+   and it's the story legendary, as in Silver/SoulSilver, with silver and ocean themes throughout the
+   presentation. Ho-Oh moves to the post-game.
+5. **Same scope as Radical Red.** Where Radical Red has a feature (modes, QoL, Megas, Z-Moves,
+   Dynamax raids, starter choice), StunningSilver has the Johto equivalent.
 
 ## 2. Platform decision
 
@@ -77,6 +80,35 @@ These numbers are a first pass and will be tuned once boss teams exist. Planned 
 
 ## 5. Roster
 
+### Starter selection ✅
+
+Like Radical Red, the player chooses which starters to pick from. When you walk up to the starter
+machine in Elm's lab, Elm asks which Pokémon you'd like to choose from:
+
+| Option | Starters offered |
+|---|---|
+| **Johto** | Chikorita, Cyndaquil, Totodile |
+| **Other regions** → Kanto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea | That generation's grass/fire/water trio |
+| **Random starters** | Each slot is the grass, fire or water starter of a random generation, e.g. Rowlet / Charmander / Piplup |
+| **Truly random** | Any three different Pokémon out of all 1,025 |
+
+The rival (Silver) takes the starter in the slot that counters yours, as in vanilla, at the same
+evolution stage. For example, with the Sinnoh set, choosing Turtwig means the rival takes
+Chimchar, which becomes Monferno and then Infernape over the game. With truly random, he takes whichever
+Pokémon sits in that slot. His trainer-data moves and ability are dropped for a swapped
+starter, so it uses its own level-up moves.
+
+How it works:
+- `STARTER_SELECTION` in `include/config.h`, with set ids in `include/constants/starter_selection.h`
+- the menu: Elm's lab script `data/scr_seq/scr_seq_00843_T20R0101.s` and text `data/text/543.txt`
+- rolling the offers and swapping the rival's starter: `src/starters.c`, plus a hook in `src/field/enemy_party.c`
+- vars `0x4160`–`0x4163`. The game still stores the Johto starter for the slot you took, so every
+  vanilla rival script picks the right team.
+
+Known gap: the starter screen's text (`data/text/190.txt`) no longer names the species, because
+the hardcoded names would be wrong. You see the sprite and hear the cry. Showing the real name
+needs a hook in the starter app's text printing, which requires a ROM to disassemble (after M1).
+
 - **Johto dex expansion.** Johto's regional dex is extended with Pokémon from Gens 3–9 so that
   every route has several viable options. hg-engine currently covers the dex through Gen 6
   almost completely, with later gens in progress upstream. The roster grows as upstream lands species.
@@ -88,10 +120,21 @@ These numbers are a first pass and will be tuned once boss teams exist. Planned 
   way Radical Red did. All changes go in `data/Species.c`, `data/learnsets/`, and `data/Moves.c`.
 - **Megas.** Megas for Johto-themed Pokémon are a stretch goal; this means new sprites.
 
+### Battle mechanics scope (same as Radical Red)
+
+| Mechanic | Radical Red | StunningSilver status |
+|---|---|---|
+| Physical/special split, Fairy, Gen 9 moves & abilities | Yes | Available (hg-engine) |
+| Mega Evolution / Primal Reversion | Yes | Available (hg-engine `MEGA_EVOLUTIONS`) |
+| Z-Moves | Yes | **To build.** hg-engine has move data and `FLAG_Z_MOVE_ENABLED`, but no activation or move conversion yet. |
+| Dynamax / Gigantamax raid dens | Yes (Wish Piece raids) | **To build.** hg-engine's Dynamax turn step is a `TODO` stub. Needs the battle mechanic, Max Moves, and raid den encounters. |
+| Terastallization | No | Out of scope |
+
 ## 6. Quality of life
 
 | Feature | Status | How |
 |---|---|---|
+| Starter selection (any generation or random) | **Done** | `STARTER_SELECTION`, see §5 |
 | Hard level caps | **Done** | `IMPLEMENT_LEVEL_CAP` + `LEVEL_CAP_FROM_BADGES` |
 | Rare Candy evolves at cap | **Done** | `ALLOW_LEVEL_CAP_EVOLVE` |
 | EV/IV viewer on summary screen | On (upstream default) | `IMPLEMENT_NEW_EV_IV_VIEWER` |
@@ -121,21 +164,41 @@ These numbers are a first pass and will be tuned once boss teams exist. Planned 
 
 | Milestone | Scope |
 |---|---|
-| **M0 — Foundation** ✅ | Import hg-engine, branding/docs, badge-based level caps |
+| **M0 — Foundation** ✅ | Import hg-engine, branding/docs, badge-based level caps, starter selection |
 | **M1 — Playable build in CI** | Enable the upstream GitHub Actions build for this repo (it builds a HeartGold ROM from the pokeheartgold decomp and patches it). Produce a `.xdelta` patch artifact. |
-| **M2 — Script source** | Dump scripts/event data into the repo (`BUILD_DUMPED_SCR_SEQ`, `BUILD_DUMPED_EVENTDATA`) so story edits are reviewable text. |
+| **M2 — Script source** | Dump scripts/event data into the repo (`BUILD_DUMPED_SCR_SEQ`, `BUILD_DUMPED_EVENTDATA`) so story edits are reviewable text. Individual scripts can already be taken over without a ROM. See "Editing a vanilla script" below. |
 | **M3 — Johto encounters** | New wild encounter tables (`data/Encounters.c`, headbutt, surf, Safari/Bug Contest) with the expanded roster. |
 | **M4 — Gyms 1–4 + early rivals/Rocket** | Boss teams, level-cap script bumps, Hardcore variants. |
 | **M5 — Game-mode select** | New-game menu + flags for Hardcore / Restricted / Minimal Grinding. Implement the move/ability bans. |
 | **M6 — Gyms 5–8, Lugia story swap, Elite Four** | Lugia replaces Ho-Oh in the story, plus E4 and Lance. |
+| **M6b — Lugia cover** | Title screen with Lugia instead of Ho-Oh, and a StunningSilver logo. HG's title shows a 3D Ho-Oh model, and SoulSilver's assets can't be used from an HG base, so this needs original Lugia title art/model. Also the box art for the release page. |
+| **M6c — Z-Moves & Dynamax** | Implement both in the battle engine (ideally contributed upstream to hg-engine), then Z-Crystals and raid dens. |
 | **M7 — QoL NPCs & key items** | Nature/IV/EV services, relearner, portable heal, HM-less field moves |
 | **M8 — Kanto post-game + Red** | Kanto gyms, rematches, Mt. Silver |
 | **M9 — Polish & release** | Rebalance pass, boss doc, Pokémon locations doc, patcher instructions |
 
-## 9. Open decisions
+### Editing a vanilla script without a ROM
 
-1. Does the Silver identity go further than the Lugia story swap, e.g. a title screen and a palette/version byte change?
-2. Is the starter selection the classic three, or an expanded choice?
-3. Are Z-Moves, Dynamax or Terastallization in scope, or only Megas? hg-engine reserves flags for
-   all of them, but their implementations depend on upstream.
-4. The exact level-cap numbers: tune them after the M4 playtest.
+Script files named with a five-digit number (`data/scr_seq/scr_seq_NNNNN_*.s`) are always built,
+and each one replaces that one script in the ROM. Elm's lab (script 843) was taken over this way:
+
+1. Assemble the script from [pret/pokeheartgold](https://github.com/pret/pokeheartgold)
+   (`files/fielddata/script/scr_seq/scr_seq_0843_T20R0101.s`). Check the binary against the
+   SHA-1 in pokeheartgold's `scr_seq.sha1` to confirm it matches vanilla.
+2. Decompile the binary with hg-engine's `NormalScriptParser` from
+   `tools/source/dumptools/dump_event_scripts.py`. This gives the same format `make dump_scripts` writes.
+3. Reassemble it with the build's flags and confirm it's byte-identical before making changes.
+4. Text archives: convert pokeheartgold's `files/msgdata/msg/msg_NNNN_*.json` to
+   `data/text/NNN.txt`. That's one message per line with CRLF endings, using `\n`, `\r` and `\f` escapes.
+
+## 9. Decisions
+
+Resolved:
+- **Silver identity:** Lugia is the cover legendary (title screen and box art) and the story legendary.
+- **Starters:** Radical Red-style choice of any generation, random starters, or truly random (§5).
+- **Mechanics scope:** the same as Radical Red. Megas, Z-Moves and Dynamax are in; Terastallization is out.
+
+Open:
+1. The exact level-cap numbers: tune them after the M4 playtest.
+2. Truly random can roll legendaries and Pokémon that don't evolve. Keep it truly random, or
+   add a "random base-stage only" option?

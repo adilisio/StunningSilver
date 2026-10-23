@@ -1770,6 +1770,16 @@ u32 LONG_CALL GetLevelCap(void);
 u32 LONG_CALL IsLevelAtLevelCap(u32 level);
 
 /**
+ *  @brief replace a member of the rival's johto starter line with the offered starter in the same slot at the same evolution stage
+ *
+ *  @param species species id from the trainer data, replaced if it is a johto starter
+ *  @param form form from the trainer data, replaced alongside species
+ *  @param heapID heap to load the evolution table on
+ *  @return TRUE if the species was replaced; FALSE otherwise
+ */
+BOOL LONG_CALL SwapRivalStarterSpecies(u16 *species, u8 *form, int heapID);
+
+/**
  *  @brief grab the nature of a BoxPokemon factoring in the nature mint override field
  *
  *  @param boxMon BoxPokemon whose nature to grab

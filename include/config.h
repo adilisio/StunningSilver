@@ -95,6 +95,13 @@
 // the effective cap is the higher of the badge-derived cap and LEVEL_CAP_VARIABLE, so scripts can still raise it for mid-game bosses
 #define LEVEL_CAP_FROM_BADGES
 
+// StunningSilver: STARTER_SELECTION has professor elm ask which starters to offer: any generation's trio, random starters (each slot from a random generation) or truly random species (see src/starters.c)
+// STARTER_SET_VARIABLE holds the STARTER_SET_* choice from include/constants/starter_selection.h, set by the elm's lab script before the starter selection screen
+// STARTER_OFFER_VARIABLE_START is the first of three vars holding the offered species in grass, fire, water order.  the rival's johto starter line is swapped for the offered starter he takes
+#define STARTER_SELECTION
+#define STARTER_SET_VARIABLE 0x4160
+#define STARTER_OFFER_VARIABLE_START 0x4161
+
 // System flags that need to be enabled for the player to use the gimmick. If you want to change them, remember to change them in flags.s as well for consistency
 #define FLAG_MEGA_EVOLUTION_ENABLED  2518
 #define FLAG_Z_MOVE_ENABLED          2519
