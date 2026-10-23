@@ -166,7 +166,7 @@ needs a hook in the starter app's text printing, which requires a ROM to disasse
 | Milestone | Scope |
 |---|---|
 | **M0 — Foundation** ✅ | Import hg-engine, branding/docs, badge-based level caps, starter selection |
-| **M1 — Playable build in CI** 🔄 | `.github/workflows/build.yml` runs on every push: it builds HeartGold from the pokeheartgold decomp, runs hg-engine's battle tests, builds the playable ROM, and uploads only a `StunningSilver.xdelta` patch. Done once the first run is green. |
+| **M1 — Playable build in CI** ✅ | `.github/workflows/build.yml` runs on every push: it builds HeartGold from the pokeheartgold decomp, runs hg-engine's battle tests, builds the playable ROM, and uploads only a `StunningSilver.xdelta` patch. First green run: 2026-10-23, about 73 minutes. |
 | **M2 — Script source** | Dump scripts/event data into the repo (`BUILD_DUMPED_SCR_SEQ`, `BUILD_DUMPED_EVENTDATA`) so story edits are reviewable text. Individual scripts can already be taken over without a ROM. See "Editing a vanilla script" below. |
 | **M3 — Johto encounters** | New wild encounter tables (`data/Encounters.c`, headbutt, surf, Safari/Bug Contest) with the expanded roster. |
 | **M4 — Gyms 1–4 + early rivals/Rocket** | Boss teams, level-cap script bumps, Hardcore variants. |
