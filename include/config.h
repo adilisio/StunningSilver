@@ -86,10 +86,14 @@
 // uncommenting IMPLEMENT_LEVEL_CAP enables the level cap system.  make sure to also uncomment LEVEL_CAP_VARIABLE in the process
 // uncommenting UNCAP_CANDIES_FROM_LEVEL_CAP will allow for rare candies to not be capped by the level cap even with the level cap in place, like run & bun
 // uncommenting ALLOW_LEVEL_CAP_EVOLVE will allow for rare candies to evolve pokemon already at the level cap that can evolve at that level already
-// #define IMPLEMENT_LEVEL_CAP
-// #define LEVEL_CAP_VARIABLE 0x416F
+#define IMPLEMENT_LEVEL_CAP
+#define LEVEL_CAP_VARIABLE 0x416F
 // #define UNCAP_CANDIES_FROM_LEVEL_CAP
-// #define ALLOW_LEVEL_CAP_EVOLVE
+#define ALLOW_LEVEL_CAP_EVOLVE
+
+// StunningSilver: LEVEL_CAP_FROM_BADGES derives the level cap from the player's badge count and hall of fame status (see sBadgeLevelCaps in src/pokemon.c)
+// the effective cap is the higher of the badge-derived cap and LEVEL_CAP_VARIABLE, so scripts can still raise it for mid-game bosses
+#define LEVEL_CAP_FROM_BADGES
 
 // System flags that need to be enabled for the player to use the gimmick. If you want to change them, remember to change them in flags.s as well for consistency
 #define FLAG_MEGA_EVOLUTION_ENABLED  2518

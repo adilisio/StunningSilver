@@ -1717,10 +1717,76 @@ u32 CheckCanUseBallOnDoublesFromBag(struct BattleStruct *sp)
     return TRUE;
 }
 
+#if defined(IMPLEMENT_LEVEL_CAP) && defined(LEVEL_CAP_FROM_BADGES) && !defined(DEBUG_BATTLE_SCENARIOS)
+
+#define BADGE_LEVEL_CAP_HALL_OF_FAME_INDEX 9
+
+/**
+ *  StunningSilver level caps, indexed by progress:
+ *  0-8 = number of johto badges, 9 = after the hall of fame (first kanto gym), 10-17 = 8 johto badges + (index - 9) kanto badges
+ */
+static const u8 sBadgeLevelCaps[] = {
+    13,  // falkner
+    19,  // bugsy
+    25,  // whitney
+    32,  // morty
+    38,  // chuck
+    44,  // jasmine
+    50,  // pryce
+    56,  // clair
+    65,  // elite four + lance
+    70,  // first kanto gym
+    72,  // second kanto gym
+    74,
+    76,
+    78,
+    80,
+    82,
+    84,  // eighth kanto gym
+    100, // red
+};
+
+/**
+ *  @brief count the set bits in a badge bitfield
+ *
+ *  @param badges badge bitfield
+ *  @return number of badges set
+ */
+static u32 CountBadges(u32 badges)
+{
+    u32 count = 0;
+    while (badges) {
+        count += badges & 1;
+        badges >>= 1;
+    }
+    return count;
+}
+
+/**
+ *  @brief get the level cap derived from the player's badges and hall of fame status
+ *
+ *  @return level cap from sBadgeLevelCaps
+ */
+static u32 GetBadgeLevelCap(void)
+{
+    struct PlayerProfile *profile = Sav2_PlayerData_GetProfileAddr(SaveBlock2_get());
+    u32 index = CountBadges(profile->johtoBadges);
+
+    if (profile->gameClear) {
+        index = BADGE_LEVEL_CAP_HALL_OF_FAME_INDEX + CountBadges(profile->kantoBadges);
+    }
+    if (index >= NELEMS(sBadgeLevelCaps)) {
+        index = NELEMS(sBadgeLevelCaps) - 1;
+    }
+    return sBadgeLevelCaps[index];
+}
+
+#endif // IMPLEMENT_LEVEL_CAP && LEVEL_CAP_FROM_BADGES && !DEBUG_BATTLE_SCENARIOS
+
 /**
  *  @brief get level cap from the script variable defined by LEVEL_CAP_VARIABLE
  *
- *  @return level cap from LEVEL_CAP_VARIABLE script variable or 100 if it's not set at all
+ *  @return level cap from LEVEL_CAP_VARIABLE script variable or 100 if it's not set at all.  with LEVEL_CAP_FROM_BADGES, the higher of that and the badge-derived cap
  */
 u32 LONG_CALL GetLevelCap(void)
 {
@@ -1729,6 +1795,12 @@ u32 LONG_CALL GetLevelCap(void)
 #else
 #ifdef IMPLEMENT_LEVEL_CAP
     u32 levelCap = GetScriptVar(LEVEL_CAP_VARIABLE);
+#ifdef LEVEL_CAP_FROM_BADGES
+    u32 badgeLevelCap = GetBadgeLevelCap();
+    if (levelCap == 0 || levelCap > 100 || levelCap < badgeLevelCap) {
+        levelCap = badgeLevelCap;
+    }
+#endif // LEVEL_CAP_FROM_BADGES
     if (levelCap > 100 || levelCap == 0) {
         levelCap = 100;
     }
@@ -1772,7 +1844,7 @@ BOOL Pokemon_TryLevelUp(struct PartyPokemon *mon)
     if (level > GetLevelCap()) {
         return FALSE;
     }
-    if (exp >= GetExpByGrowthRateAndLevel((int)growthrate, level)) {
+    if (exp >= (u32)GetExpByGrowthRateAndLevel((int)growthrate, level)) {
         SetMonData(mon, MON_DATA_LEVEL, &level);
         return TRUE;
     }
